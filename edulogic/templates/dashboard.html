@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduLogic | Análisis Inteligente de Rendimiento Académico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark shadow-sm mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🎓 EduLogic — Sistema Multiparadigma de Seguimiento Académico</span>
+            <span class="text-light small">UTP | Lenguajes de Programación</span>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Tarjetas KPI -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Total Estudiantes</h6>
+                        <h2 class="fw-bold mb-0">{{ kpis.total_estudiantes }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Promedio Cohorte (Funcional)</h6>
+                        <h2 class="fw-bold text-primary mb-0">{{ kpis.promedio_cohorte }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Riesgo Alto / Prioridad</h6>
+                        <h2 class="fw-bold text-danger mb-0">{{ kpis.en_riesgo_critico }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small">Desviación Estándar (NumPy)</h6>
+                        <h2 class="fw-bold text-secondary mb-0">{{ analisis.metricas_globales.desviacion_std }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos y Estadísticas NumPy/Pandas -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Clasificación de Riesgo (Inferencia Lógica)</div>
+                    <div class="card-body">
+                        <canvas id="chartRiesgo" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Promedio por Curso (Análisis pandas)</div>
+                    <div class="card-body">
+                        <canvas id="chartCursos" height="200"></canvas>
+                        <hr>
+                        <div class="d-flex justify-content-around text-center small text-muted">
+                            <div><strong>Media Global:</strong> {{ analisis.metricas_globales.media_numpy }}</div>
+                            <div><strong>Mediana:</strong> {{ analisis.metricas_globales.mediana_numpy }}</div>
+                            <div><strong>Nota Máx:</strong> {{ analisis.metricas_globales.nota_maxima }}</div>
+                            <div><strong>Nota Mín:</strong> {{ analisis.metricas_globales.nota_minima }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Alertas Inferidas -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Resultados de Evaluación Académica e Inferencia Lógica</span>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalCsv">
+                    📂 Cargar nuevos CSV
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Estudiante</th>
+                            <th>Promedio</th>
+                            <th>% Inasistencia</th>
+                            <th>Diagnóstico Lógico</th>
+                            <th>Detalle de Inferencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alertas %}
+                        <tr>
+                            <td class="fw-semibold">{{ a.codigo_estudiante }}</td>
+                            <td>{{ a.nombre_estudiante }}</td>
+                            <td><strong>{{ a.promedio }}</strong></td>
+                            <td>{{ a.porcentaje_inasistencia }}%</td>
+                            <td><span class="badge bg-{{ a.color_badge }}">{{ a.nivel_riesgo }}</span></td>
+                            <td class="small text-muted">{{ a.motivo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para subir CSV -->
+    <div class="modal fade" id="modalCsv" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" action="/subir-csv" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Actualizar Archivos CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">estudiantes.csv</label>
+                        <input type="file" name="estudiantes" class="form-control" accept=".csv">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">calificaciones.csv</label>
+                        <input type="file" name="calificaciones" class="form-control" accept=".csv">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">asistencias.csv</label>
+                        <input type="file" name="asistencias" class="form-control" accept=".csv">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Procesar Datos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const distRiesgo = {{ analisis.distribucion_riesgo | tojson }};
+        new Chart(document.getElementById('chartRiesgo'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(distRiesgo),
+                datasets: [{
+                    data: Object.values(distRiesgo),
+                    backgroundColor: ['#dc3545', '#ffc107', '#0dcaf0', '#6c757d', '#198754']
+                }]
+            }
+        });
+
+        const cursosData = {{ analisis.estadisticas_cursos | tojson }};
+        new Chart(document.getElementById('chartCursos'), {
+            type: 'bar',
+            data: {
+                labels: cursosData.map(c => c.nombre),
+                datasets: [{
+                    label: 'Promedio del Curso',
+                    data: cursosData.map(c => c.promedio),
+                    backgroundColor: '#0d6efd'
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 20 } } }
+        });
+    </script>
+</body>
+
+</html>
