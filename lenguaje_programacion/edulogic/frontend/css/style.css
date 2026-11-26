@@ -1,0 +1,73 @@
+:root {
+    --navy: #142b4a;
+    --blue: #356fe0;
+    --bg: #f3f6fb
+}
+
+body {
+    background: var(--bg);
+    font-family: Inter, system-ui, sans-serif;
+    color: #26364b
+}
+
+.sidebar {
+    background: var(--navy);
+    min-height: 100vh;
+    color: white
+}
+
+.brand {
+    font-weight: 800;
+    letter-spacing: .3px
+}
+
+.nav-link {
+    color: #c9d7e9;
+    border-radius: 9px;
+    margin: 3px 0;
+    text-align: left
+}
+
+.nav-link.active,
+.nav-link:hover {
+    background: #29476c;
+    color: white
+}
+
+.card {
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px #152b4a0a
+}
+
+.metric {
+    font-size: 1.8rem;
+    font-weight: 750
+}
+
+.muted {
+    color: #8090a5
+}
+
+.tag {
+    border-radius: 99px;
+    padding: 5px 10px;
+    font-size: .78rem;
+    background: #edf2f9
+}
+
+.page {
+    display: none
+}
+
+.page.active {
+    display: block
+}
+
+.table>:not(caption)>*>* {
+    padding: .8rem
+}
+
+.btn-primary {
+    background: var(--blue)
+}
